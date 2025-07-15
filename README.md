@@ -1,4 +1,6 @@
-# MCP CLI client
+# MCP CLI Client
+
+#### Github: https://github.com/Yahialqur/mcp-client-cli/tree/yahia
 
 A simple CLI program to run LLM prompt and implement [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) client.
 
@@ -6,7 +8,6 @@ You can use any [MCP-compatible servers](https://github.com/punkpeye/awesome-mcp
 
 This act as alternative client beside Claude Desktop. Additionally you can use any LLM provider like OpenAI, Groq, or local LLM model via [llama](https://github.com/ggerganov/llama.cpp).
 
-![C4 Diagram](https://raw.githubusercontent.com/adhikasp/mcp-client-cli/refs/heads/master/c4_diagram.png)
 
 ## Setup
 
@@ -15,39 +16,32 @@ This act as alternative client beside Claude Desktop. Additionally you can use a
    pip install yahia-mcp-client-cli
    ```
 
-2. Create a `~/.llm/config.json` file to configure your LLM and MCP servers:
+2. Create a config.json file to configure your LLM and MCP servers: 
+
+(On Mac and Linux `~/.llm/config.json`)
+
+(On windows `C:\Users\YourUsername\.llm\config.json`)
    ```json
-   {
-     "systemPrompt": "You are an AI assistant helping a software engineer...",
-     "llm": {
-       "provider": "openai",
-       "model": "gpt-4",
-       "api_key": "your-openai-api-key",
-       "temperature": 0.7,
-       "base_url": "https://api.openai.com/v1"  // Optional, for OpenRouter or other providers
-     },
-     "mcpServers": {
-       "fetch": {
-         "command": "uvx",
-         "args": ["mcp-server-fetch"],
-         "requires_confirmation": ["fetch"],
-         "enabled": true,  // Optional, defaults to true
-         "exclude_tools": []  // Optional, list of tool names to exclude
-       },
-       "brave-search": {
-         "command": "npx",
-         "args": ["-y", "@modelcontextprotocol/server-brave-search"],
-         "env": {
-           "BRAVE_API_KEY": "your-brave-api-key"
-         },
-         "requires_confirmation": ["brave_web_search"]
-       },
-       "youtube": {
-         "command": "uvx",
-         "args": ["--from", "git+https://github.com/adhikasp/mcp-youtube", "mcp-youtube"]
-       }
-     }
-   }
+    {
+      "systemPrompt": "You are an AI assistant helping a software engineer...",
+      "llm": {
+        "provider": "ollama",
+        "model": "qwen3:1.7b",
+        "base_url": "http://localhost:11434"
+        },
+      "mcpServers": {
+        "neo4j-aura": {
+            "command": "uvx",
+            "args": [ "mcp-neo4j-cypher@0.2.4", "--transport", "stdio" ],
+            "env": {
+                "NEO4J_URI": "neo4j://localhost:7687",
+                "NEO4J_USERNAME": "neo4j",
+                "NEO4J_PASSWORD": "password",
+                "NEO4J_DATABASE": "neo4j"
+            }
+        }
+        }
+    }
    ```
 
    Note:
@@ -58,31 +52,37 @@ This act as alternative client beside Claude Desktop. Additionally you can use a
    - You can comment the JSON config file with `//` if you like to switch around the configuration
 
 3. Run the CLI:
+   
+   For Single Queries:
    ```bash
    llm "What is the capital city of North Sumatra?"
    ```
 
+   For Interactive Mode (Continuous queries):
+   ```bash
+   llm
+   ```
+
+## Setup Extras
+
+For Neo4j MCP:
+1. You may need to add the following in the desired neo4j instance's neo4j.conf if it does not exist already:
+```
+dbms.security.procedures.unrestricted=apoc.*
+dbms.security.procedures.allowlist=apoc.*
+dbms.security.allow_csv_import_from_file_urls=true
+dbms.connector.bolt.listen_address=:7687
+```
+
+To open Neo4j.conf:
+1. Open Neo4j Desktop
+2. Click the options button on the instance
+3. Click the Open neo4j.conf option
+
 ## Usage
 
-### Basic Usage
-
-```bash
-$ llm What is the capital city of North Sumatra?
-The capital city of North Sumatra is Medan.
-```
-
-You can omit the quotes, but be careful with bash special characters like `&`, `|`, `;` that might be interpreted by your shell.
-
-You can also pipe input from other commands or files:
-
-```bash
-$ echo "What is the capital city of North Sumatra?" | llm
-The capital city of North Sumatra is Medan.
-
-$ echo "Given a location, tell me its capital city." > instructions.txt
-$ cat instruction.txt | llm "West Java"
-The capital city of West Java is Bandung.
-```
+### With Neo4j
+Using the Neo4j mcp server, we can call any of the server functions through the cli client
 
 ### Image Input
 
@@ -228,55 +228,9 @@ $ llm --model gpt-4               # Override the model specified in config
 
 Feel free to submit issues and pull requests for improvements or bug fixes.
 
+<br><br><br>
 
-## Yahia Setup Instructions for neo4j:
-
-1. Download dependencies from requirements
-```bash
-$ pip install -r requirements.txt
-```
-2. Create a `~/.llm/config.json` or `C:\Users\YourUsername\.llm\config.json` for windows. 
-
-3. Add the following in the config.json. Neo4j one will be similar to this, but update llm section as needed:
-```json
-{
-  {
-    "systemPrompt": "You are an AI assistant helping a software engineer...",
-    "llm": {
-      "provider": "ollama",
-      "model": "qwen3:1.7b",
-      "base_url": "http://localhost:11434"
-      },
-    "mcpServers": {
-      "neo4j-aura": {
-          "command": "uvx",
-          "args": [ "mcp-neo4j-cypher@0.2.4", "--transport", "stdio" ],
-          "env": {
-              "NEO4J_URI": "neo4j://localhost:7687",
-              "NEO4J_USERNAME": "neo4j",
-              "NEO4J_PASSWORD": "password",
-              "NEO4J_DATABASE": "neo4j"
-          }
-      }
-      }
-  }
-}
-```
-
-4. May need to add the following to the neo4j.conf file in the neo4j database being used:
-```
-    dbms.security.procedures.unrestricted=apoc.*
-    dbms.security.procedures.allowlist=apoc.*
-    dbms.security.allow_csv_import_from_file_urls=true
-    dbms.connector.bolt.listen_address=:7687
-```
-
-5. Run the following in cli with your desired query:
-```bash
-$ python -m mcp_client_cli.cli "Get database schema using get_neo4j_schema"
-```
-
-## Other LLM Setup:
+##### Other LLM Setup
 ```
   "llm": {
       "provider": "openai",
