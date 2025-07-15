@@ -235,7 +235,9 @@ Feel free to submit issues and pull requests for improvements or bug fixes.
 ```bash
 $ pip install -r requirements.txt
 ```
-2. Create a `~/.llm/config.json`, neo4j one will be similar to this, but update llm section as needed:
+2. Create a `~/.llm/config.json` or `C:\Users\YourUsername\.llm\config.json` for windows. 
+
+3. Add the following in the config.json. Neo4j one will be similar to this, but update llm section as needed:
 ```json
 {
   {
@@ -261,7 +263,7 @@ $ pip install -r requirements.txt
 }
 ```
 
-3. May need to add the following to the neo4j.conf file in the neo4j database being used:
+4. May need to add the following to the neo4j.conf file in the neo4j database being used:
 ```
     dbms.security.procedures.unrestricted=apoc.*
     dbms.security.procedures.allowlist=apoc.*
@@ -269,7 +271,7 @@ $ pip install -r requirements.txt
     dbms.connector.bolt.listen_address=:7687
 ```
 
-4. Run the following in cli with your desired query:
+5. Run the following in cli with your desired query:
 ```bash
 $ python -m mcp_client_cli.cli "Get database schema using get_neo4j_schema"
 ```
