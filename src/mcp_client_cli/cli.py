@@ -48,26 +48,6 @@ class AgentState(TypedDict):
     memories: str = "no memories"
     remaining_steps: int = 5
 
-async def run() -> None:
-    """Run the LLM agent."""
-    args = setup_argument_parser()
-    query, is_conversation_continuation = parse_query(args)
-    app_config = AppConfig.load()
-    
-    if args.list_tools:
-        await handle_list_tools(app_config, args)
-        return
-    
-    if args.show_memories:
-        await handle_show_memories()
-        return
-        
-    if args.list_prompts:
-        handle_list_prompts()
-        return
-        
-    await handle_conversation(args, query, is_conversation_continuation, app_config)
-
 def setup_argument_parser() -> argparse.Namespace:
     """Setup and return the argument parser."""
     parser = argparse.ArgumentParser(
@@ -108,6 +88,78 @@ Examples:
     parser.add_argument('--model',
                        help='Override the model specified in config')
     return parser.parse_args()
+
+async def run() -> None:
+    """Run the LLM agent continuously."""
+    args = setup_argument_parser()
+    app_config = AppConfig.load()
+    
+    # Handle one-time commands
+    if args.list_tools:
+        await handle_list_tools(app_config, args)
+        return
+    
+    if args.show_memories:
+        await handle_show_memories()
+        return
+        
+    if args.list_prompts:
+        handle_list_prompts()
+        return
+    
+    # Add interactive mode flag
+    interactive_mode = not args.query  # If no query provided, start interactive mode
+    
+    if interactive_mode:
+        print("Starting interactive mode. Type 'exit' or 'quit' to stop.")
+        print("Use 'c <message>' to continue previous conversation.")
+        print("Use 'p <template> <args>' to use prompt templates.")
+        print()
+    
+    # Process initial query if provided
+    if args.query:
+        query, is_conversation_continuation = parse_query(args)
+        if query.content:
+            await handle_conversation(args, query, is_conversation_continuation, app_config)
+    
+    # Interactive loop
+    if interactive_mode:
+        while True:
+            try:
+                # Get user input
+                user_input = input("llm> ").strip()
+                
+                if user_input.lower() in ['exit', 'quit', 'q']:
+                    print("Goodbye!")
+                    break
+                
+                if not user_input:
+                    continue
+                
+                # Parse the input similar to command line args
+                mock_args = argparse.Namespace(
+                    query=user_input.split(),
+                    no_confirmations=args.no_confirmations,
+                    force_refresh=False,
+                    text_only=args.text_only,
+                    no_tools=args.no_tools,
+                    no_intermediates=args.no_intermediates,
+                    model=args.model,
+                    list_tools=False,
+                    list_prompts=False,
+                    show_memories=False
+                )
+                
+                query, is_conversation_continuation = parse_query(mock_args)
+                if query.content:
+                    await handle_conversation(mock_args, query, is_conversation_continuation, app_config)
+                
+            except KeyboardInterrupt:
+                print("\nGoodbye!")
+                break
+            except Exception as e:
+                print(f"Error: {e}")
+                continue
 
 async def handle_list_tools(app_config: AppConfig, args: argparse.Namespace) -> None:
     """Handle the --list-tools command."""
