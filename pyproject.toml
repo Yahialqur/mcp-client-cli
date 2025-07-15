@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "yahia_mcp_client_cli"
-version = "1.1.2"
+version = "1.2.0"
 description = "Command line interface for MCP client"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -30,6 +30,7 @@ dependencies = [
     "standard-imghdr>=3.13.0",
     "langchain-ollama==0.3.4",
     "ollama==0.5.1",
+    "uv==0.7.21",
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
