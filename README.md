@@ -12,7 +12,7 @@ This act as alternative client beside Claude Desktop. Additionally you can use a
 
 1. Install via pip:
    ```bash
-   pip install mcp-client-cli
+   pip install yahia-mcp-client-cli
    ```
 
 2. Create a `~/.llm/config.json` file to configure your LLM and MCP servers:
