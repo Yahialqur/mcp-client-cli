@@ -227,3 +227,60 @@ $ llm --model gpt-4               # Override the model specified in config
 ## Contributing
 
 Feel free to submit issues and pull requests for improvements or bug fixes.
+
+
+## Yahia Setup Instructions for neo4j:
+
+1. Download dependencies from requirements
+```bash
+$ pip install -r requirements.txt
+```
+2. Create a `~/.llm/config.json`, neo4j one will be similar to this, but update llm section as needed:
+```json
+{
+  {
+    "systemPrompt": "You are an AI assistant helping a software engineer...",
+    "llm": {
+      "provider": "ollama",
+      "model": "qwen3:1.7b",
+      "base_url": "http://localhost:11434"
+      },
+    "mcpServers": {
+      "neo4j-aura": {
+          "command": "uvx",
+          "args": [ "mcp-neo4j-cypher@0.2.4", "--transport", "stdio" ],
+          "env": {
+              "NEO4J_URI": "neo4j://localhost:7687",
+              "NEO4J_USERNAME": "neo4j",
+              "NEO4J_PASSWORD": "password",
+              "NEO4J_DATABASE": "neo4j"
+          }
+      }
+      }
+  }
+}
+```
+
+3. May need to add the following to the neo4j.conf file in the neo4j database being used:
+```
+    dbms.security.procedures.unrestricted=apoc.*
+    dbms.security.procedures.allowlist=apoc.*
+    dbms.security.allow_csv_import_from_file_urls=true
+    dbms.connector.bolt.listen_address=:7687
+```
+
+4. Run the following in cli with your desired query:
+```bash
+$ python -m mcp_client_cli.cli "Get database schema using get_neo4j_schema"
+```
+
+## Other LLM Setup:
+```
+  "llm": {
+      "provider": "openai",
+      "model": "<deployment-id>",  // This is the Azure OpenAI deployment name
+      "api_key": "<your-api-key>",
+      "temperature": 0,
+      "base_url": "https://<your-resource-name>.openai.azure.com/openai/deployments/<deployment-id>"
+    },
+```
